@@ -51,32 +51,24 @@ if __name__ == '__main__':
         input.close()
         summary |= stat.is_finished()
     
-    play = player(play_args)
-    evil = rndenv(evil_args)
-    
+
     while not stat.is_finished():
         #play.open_episode("~:" + evil.name())
         #evil.open_episode(play.name() + ":~")
-        
+        play = player(play_args)
+        evil = rndenv(evil_args)
         stat.open_episode(play.name() + ":" + evil.name())
         game = stat.back()
-        for _ in range(9):
-            game.apply_action(evil.take_action(game.state()))
-        print(game.state())
         while True:
             who = game.take_turns(play, evil)
             move = who.take_action(game.state())
-            print(who,move)
             if not game.apply_action(move) or who.check_for_win(game.state()):
                 break
-            print(game.state())
         win = game.last_turns(play, evil)
         stat.close_episode(win.name())
-        
-        play.close_episode(win.name())
-        evil.close_episode(win.name())
-        #####
-        break
+        #break
+        #play.close_episode(win.name())
+        #evil.close_episode(win.name())
     if summary:
         stat.summary()
     
@@ -84,5 +76,3 @@ if __name__ == '__main__':
         output = open(save, "w")
         stat.save(output)
         output.close()
-    
-        

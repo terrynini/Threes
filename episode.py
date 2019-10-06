@@ -47,7 +47,8 @@ class episode:
     
     def take_turns(self, play, evil):
         self.ep_time = self.millisec()
-        if self.step()%2 != 0:
+        s = self.step()
+        if s > 8 and s%2 != 0:
             return play
         else:
             return evil

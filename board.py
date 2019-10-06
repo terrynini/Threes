@@ -38,7 +38,6 @@ class board:
         apply an action to the board
         return the reward of the action, or -1 if the action is illegal
         """
-        self.op = opcode
         if opcode == 0:
             return self.slide_up()
         if opcode == 1:

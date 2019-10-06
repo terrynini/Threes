@@ -10,6 +10,7 @@ Author: Hung Guei (moporgic)
 
 from board import board
 from action import action
+from operator import itemgetter
 import random
 
 
@@ -90,7 +91,7 @@ class rndenv(random_agent):
     def take_action(self, state):
         empty = [pos for pos, tile in enumerate(state.state) if not tile]
         fil = [[12,13,14,15],[0,4,8,12],[0,1,2,3],[3,7,11,15]]
-        if state.op:
+        if state.op is not None:
             empty = list(filter(lambda x: x in fil[state.op], empty))
         if empty:
             pos = self.choice(empty)
@@ -101,7 +102,10 @@ class rndenv(random_agent):
             return action.place(pos, tile)
         else:
             return action()
-    
+
+    def reset(self):
+        self.bag=[1,2,3]
+        return    
     
 class player(random_agent):
     """
@@ -114,9 +118,10 @@ class player(random_agent):
         return
     
     def take_action(self, state):
-        legal = [op for op in range(4) if board(state).slide(op) != -1]
+        legal = list(filter(lambda x:x[1] != -1,[ (op,board(state).slide(op)) for op in range(4) ]))
         if legal:
-            op = self.choice(legal)
+            op =  max(legal,key=itemgetter(1))[0]
+            state.op = op
             return action.slide(op)
         else:
             return action()

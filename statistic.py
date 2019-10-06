@@ -15,7 +15,7 @@ from episode import episode
 
 class statistic:
     """ container & statistic of episodes """
-    
+    score = [0, 1, 2, 3, 6, 12, 24, 48, 96, 192, 384, 768, 1536, 3072, 6144]
     def __init__(self, total, block = 0, limit = 0):
         """
         the total episodes to run
@@ -82,7 +82,7 @@ class statistic:
             if not stat[t]:
                 continue
             accu = sum(stat[t:])
-            print("\t" "%d" "\t" "%s%%" "\t" "(%s%%)" % ((1 << t) & -2, accu * 100 / blk, stat[t] * 100 / blk)) # type, win rate, % of ending
+            print("\t" "%d" "\t" "%s%%" "\t" "(%s%%)" % (self.score[t], accu * 100 / blk, stat[t] * 100 / blk)) # type, win rate, % of ending
             c += stat[t]
         
         print()
