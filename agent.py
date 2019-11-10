@@ -15,7 +15,6 @@ from weight import weight
 from array import array
 import random
 import sys
-
 class agent:
     """ base agent """
     
@@ -100,12 +99,12 @@ class weight_agent(agent):
                            [ 8,  9, 12, 13],
                            [ 9, 10, 13, 14],
                            [10, 11, 14, 15]]
-        init = self.property("init")
-        if init is not None:
-            self.init_weights(init)
         load = self.property("load")
         if load is not None:
             self.load_weights(load)
+        else:
+            for _ in range(len(self.tuple_list)):
+                self.net += [weight(65536)]
         return
     
     def __exit__(self, exc_type, exc_value, traceback):
@@ -114,10 +113,6 @@ class weight_agent(agent):
             self.save_weights(save)
         return
     
-    def init_weights(self, info):
-        for _ in range(8):
-            self.net += [weight(65536)]
-        return
     
     def load_weights(self, path):
         input = open(path, 'rb')
@@ -135,14 +130,28 @@ class weight_agent(agent):
             w.save(output)
         return
 
-    def V(self, state):
+    def evaluate(self, state, op):
+        b = board(state)
+        r = b.slide(op)
+        if r == -1:
+            return None
+        feature = self.hash(b.state)
+        #print(b)
+        #print(feature)
         result = 0
-        for i in range(8):
-            feature = 0
+        for i in range(len(feature)):
+            result += self.net[i][feature[i]]
+        #print(r,result,r+result)
+        return r+result
+    
+    def hash(self, state):
+        feature = []
+        for i in range(len(self.tuple_list)):
+            temp = 0
             for _ in self.tuple_list[i]:
-                feature = feature * 15 + state[_]
-            result += self.net[i][feature]
-        return result
+                temp = temp * 15 + state[_]
+            feature.append(temp)
+        return feature
 
 class learning_agent(agent):
     """ base agent for agents with a learning rate """
@@ -167,7 +176,7 @@ class rndenv(random_agent):
         self.bag = [1,2,3]
         return
     
-    def take_action(self, state, weight = None):
+    def take_action(self, state):
         empty = [pos for pos, tile in enumerate(state.state) if not tile]
         fil = [[12,13,14,15],[0,4,8,12],[0,1,2,3],[3,7,11,15]]
         if state.op is not None:
@@ -194,20 +203,31 @@ class player(random_agent):
     
     def __init__(self, options = ""):
         super().__init__("name=dummy role=player " + options)
-        self.weight = weight_agent(options)
-        self.weight.init_weights("")
+        self.alpha = 0.0025
         return
     
-    def take_action(self, state,):
-        #evaluate
-        legal = list(filter(lambda x:x[1] != -1,[ (op,board(state).slide(op) + self.weight.V(state)) for op in range(4) ]))
+    def take_action(self, state, weight):
+        #print(state)
+        legal = list(filter(lambda x:x[1] != None,[ (op, weight.evaluate(state, op)) for op in range(4) ]))       
         if legal:
-            op =  max(legal,key=itemgetter(1))[0]
+            argmax =  max(legal,key=itemgetter(1))
+            op  = argmax[0]
             state.op = op
             return action.slide(op)
         else:
             return action()
-    
+
+    def learning(self, cstate, state, weight):
+        rate = self.alpha*len(weight.net)
+        feature = weight.hash(cstate)     
+        legal = list(filter(lambda x:x[1] != None,[ (op, weight.evaluate(state, op)) for op in range(4) ])) 
+        if legal:
+            argmax =  max(legal,key=itemgetter(1))
+            td_target = argmax[1]
+            #wrong formula
+            V = sum([weight.net[i][feature[i]] for i in range(len(feature))])
+            for i in range(len(feature)):
+                weight.net[i][feature[i]] += rate*(td_target - V)
 if __name__ == '__main__':
     print('2048 Demo: agent.py\n')
     pass

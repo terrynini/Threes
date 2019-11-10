@@ -52,22 +52,29 @@ if __name__ == '__main__':
         input.close()
         summary |= stat.is_finished()
     
-    with player(play_args) as play, rndenv(evil_args) as evil:
+    with player(play_args) as play, rndenv(evil_args) as evil, weight_agent(play_args) as weight:
         while not stat.is_finished():
             #play.open_episode("~:" + evil.name())
             #evil.open_episode(play.name() + ":~")
             stat.open_episode(play.name() + ":" + evil.name())
             game = stat.back()
+            evil.reset()
+            for _ in range(9):
+                game.apply_action(evil.take_action(game.state()))
             while True:
-                who = game.take_turns(play, evil)
-                move = who.take_action(game.state())
-                if not game.apply_action(move) or who.check_for_win(game.state()):
+                #who = game.take_turns(play, evil)
+                game.ep_time = game.millisec()
+                if not game.apply_action(play.take_action(game.state(),weight)) :#or who.check_for_win(game.state()):
                     break
+                cstate = board(game.state())
+                game.ep_time = game.millisec()
+                game.apply_action(evil.take_action(game.state()))
+                play.learning(cstate, game.state(), weight)
             win = game.last_turns(play, evil)
             stat.close_episode(win.name())
             #break
             #play.close_episode(win.name())
-            #evil.close_episode(wi`n.name())
+            #evil.close_episode(win.name())
     if summary:
         stat.summary()
     
