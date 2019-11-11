@@ -218,7 +218,7 @@ class player(random_agent):
             return action()
 
     def learning(self, cstate, state, weight):
-        rate = self.alpha*len(weight.net)
+        rate = self.alpha
         feature = weight.hash(cstate)     
         legal = list(filter(lambda x:x[1] != None,[ (op, weight.evaluate(state, op)) for op in range(4) ])) 
         if legal:
