@@ -203,7 +203,11 @@ class player(random_agent):
     
     def __init__(self, options = ""):
         super().__init__("name=dummy role=player " + options)
-        self.alpha = 0.0025
+        alpha = self.property("alpha")
+        if alpha is not None:
+            self.alpha = float(alpha)
+        else:
+            self.alpha = 0.0025
         return
     
     def take_action(self, state, weight):
@@ -218,6 +222,8 @@ class player(random_agent):
             return action()
 
     def learning(self, cstate, state, weight):
+        if self.alpha == 0:
+            return
         rate = self.alpha
         feature = weight.hash(cstate)     
         legal = list(filter(lambda x:x[1] != None,[ (op, weight.evaluate(state, op)) for op in range(4) ])) 
