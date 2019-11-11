@@ -65,7 +65,7 @@ class board:
                 elif row[i] == row[i+1]:
                     row[i] += 1
                     row[i+1] = 0
-                    score += self.score[row[0]]
+                    score += self.score[row[i]]
                 move += [row[i]]
             move += [row[-1]]
         if move != self.state:
